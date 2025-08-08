@@ -78,6 +78,67 @@ The application uses Stable Diffusion XL Base 1.0 through Hugging Face's Inferen
 - ✅ Added proper error handling and user feedback
 - ✅ Maintained all original functionality while eliminating API costs
 
+## Docker Deployment
+
+### Quick Start with Docker Compose
+
+1. **Clone the repository**:
+```bash
+git clone https://github.com/caid-and-cubs/3images.git
+cd 3images
+```
+
+2. **Set up environment variables**:
+```bash
+cp .env.example .env
+# Edit .env file and add your HUGGINGFACE_API_KEY
+```
+
+3. **Build and run with Docker Compose**:
+```bash
+docker-compose up --build
+```
+
+4. **Access the application**:
+Open http://localhost:8000 in your browser
+
+### Manual Docker Build
+
+```bash
+# Build the Docker image
+docker build -t ai-image-generator .
+
+# Run the container
+docker run -p 8000:8000 \
+  -e HUGGINGFACE_API_KEY=your_api_key_here \
+  -e DJANGO_SECRET_KEY=your_secret_key_here \
+  ai-image-generator
+```
+
+### Production Deployment
+
+For production deployment:
+
+1. **Use PostgreSQL instead of SQLite**:
+   - Uncomment the PostgreSQL service in `docker-compose.yml`
+   - Update the `DATABASE_URL` environment variable
+
+2. **Set secure environment variables**:
+   - Generate a strong `DJANGO_SECRET_KEY`
+   - Set `DEBUG=False`
+   - Configure proper domain in Django settings
+
+3. **Use a reverse proxy** (Nginx/Apache) for serving static files and SSL termination
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `HUGGINGFACE_API_KEY` | Yes | Your Hugging Face API token |
+| `DJANGO_SECRET_KEY` | Yes | Django secret key for security |
+| `DEBUG` | No | Set to `False` for production (default: True) |
+| `DATABASE_URL` | No | PostgreSQL URL (default: SQLite) |
+
 ## License
 
 This project is open source and available under the MIT License.
