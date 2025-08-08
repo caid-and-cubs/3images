@@ -2,9 +2,13 @@
 
 ## Overview
 
-This is a Django-based web application that generates images from text prompts using OpenAI's DALL-E 3 API. Users can input text descriptions and receive AI-generated images, which are stored in a database and displayed in a gallery. The application features a modern dark-themed interface with Bootstrap styling and provides functionality for viewing, downloading, and managing generated images.
+This is a Django-based web application that generates images from text prompts using Stable Diffusion via Hugging Face's free API. Users can input text descriptions and receive AI-generated images, which are stored in a database and displayed in a gallery. The application features a modern dark-themed interface with Bootstrap styling and provides functionality for viewing, downloading, and managing generated images.
 
-**Recent Migration:** The application was successfully migrated from Flask to Django on August 8, 2025, maintaining all original functionality while improving the architecture with Django's built-in features like admin interface, migrations, and better project organization.
+**Recent Changes:** 
+- Successfully migrated from Flask to Django on August 8, 2025
+- Switched from OpenAI's DALL-E API to free Stable Diffusion via Hugging Face API
+- Updated image handling to work with base64 data URLs instead of external URLs
+- Maintained all original functionality while eliminating API costs
 
 ## User Preferences
 

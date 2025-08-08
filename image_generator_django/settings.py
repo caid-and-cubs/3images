@@ -29,6 +29,14 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['*']  # Allow all hosts for Replit deployment
 
+# CSRF settings for Replit
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.replit.dev',
+    'https://*.replit.app',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+]
+
 
 # Application definition
 

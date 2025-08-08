@@ -9,10 +9,7 @@ import requests
 import tempfile
 import os
 import logging
-from openai import OpenAI
-
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
+from stable_diffusion_service import stable_diffusion_service
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +20,7 @@ def index(request):
 
 
 def generate_image(request):
-    """Generate image from text prompt"""
+    """Generate image from text prompt using Stable Diffusion"""
     if request.method != 'POST':
         return redirect('index')
     
@@ -38,26 +35,35 @@ def generate_image(request):
             messages.error(request, 'Prompt is too long. Please keep it under 1000 characters.')
             return redirect('index')
         
-        # Generate image using OpenAI DALL-E
+        # Generate image using Stable Diffusion
         logger.info(f"Generating image for prompt: {prompt}")
-        result = generate_image_with_dalle(prompt)
         
-        if 'error' in result:
-            messages.error(request, f'Error generating image: {result["error"]}')
+        try:
+            image_data_url = stable_diffusion_service.generate_image(prompt)
+            
+            # Save to database
+            new_image = GeneratedImage.objects.create(
+                prompt=prompt,
+                image_url=image_data_url
+            )
+            
+            messages.success(request, 'Image generated successfully!')
+            return render(request, 'generator/index.html', {
+                'generated_image': image_data_url,
+                'prompt': prompt,
+                'image_id': new_image.id
+            })
+            
+        except Exception as api_error:
+            logger.error(f"Stable Diffusion API error: {str(api_error)}")
+            
+            # Check if it's an API key issue
+            if "HUGGINGFACE_API_KEY" in str(api_error):
+                messages.error(request, 'Hugging Face API key is required. Please add your HUGGINGFACE_API_KEY to environment variables.')
+            else:
+                messages.error(request, f"Error generating image: {str(api_error)}")
+            
             return redirect('index')
-        
-        # Save to database
-        new_image = GeneratedImage.objects.create(
-            prompt=prompt,
-            image_url=result['url']
-        )
-        
-        messages.success(request, 'Image generated successfully!')
-        return render(request, 'generator/index.html', {
-            'generated_image': result['url'],
-            'prompt': prompt,
-            'image_id': new_image.id
-        })
         
     except Exception as e:
         logger.error(f"Error in generate_image: {str(e)}")
@@ -78,31 +84,37 @@ def gallery(request):
 
 def download_image(request, image_id):
     """Download generated image"""
+    import base64
+    
     try:
         image = get_object_or_404(GeneratedImage, id=image_id)
         
-        # Download image from URL
-        response = requests.get(image.image_url, timeout=30)
-        response.raise_for_status()
-        
-        # Create temporary file
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        temp_file.write(response.content)
-        temp_file.close()
-        
-        # Generate filename
-        safe_prompt = "".join(c for c in image.prompt[:50] if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        filename = f"{safe_prompt}_{image.id}.png"
-        
-        # Read file and return as response
-        with open(temp_file.name, 'rb') as f:
-            response = HttpResponse(f.read(), content_type='image/png')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        # Handle base64 data URLs from Stable Diffusion
+        if image.image_url.startswith('data:image'):
+            # Extract base64 data from data URL
+            header, data = image.image_url.split(',', 1)
+            image_data = base64.b64decode(data)
             
-        # Clean up temp file
-        os.unlink(temp_file.name)
-        
-        return response
+            # Generate filename
+            safe_prompt = "".join(c for c in image.prompt[:50] if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            filename = f"{safe_prompt}_{image.id}.png"
+            
+            response = HttpResponse(image_data, content_type='image/png')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+            
+        else:
+            # Handle regular URLs (fallback for legacy images)
+            response = requests.get(image.image_url, timeout=30)
+            response.raise_for_status()
+            
+            # Generate filename
+            safe_prompt = "".join(c for c in image.prompt[:50] if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            filename = f"{safe_prompt}_{image.id}.png"
+            
+            http_response = HttpResponse(response.content, content_type='image/png')
+            http_response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return http_response
         
     except Exception as e:
         logger.error(f"Error downloading image {image_id}: {str(e)}")
@@ -126,63 +138,4 @@ def delete_image(request, image_id):
     return redirect('gallery')
 
 
-def generate_image_with_dalle(prompt):
-    """
-    Generate image using OpenAI DALL-E 3
-    
-    Args:
-        prompt (str): Text description for image generation
-        
-    Returns:
-        dict: Contains 'url' on success or 'error' on failure
-    """
-    try:
-        if not openai_client:
-            return {"error": "OpenAI API key not configured"}
-        
-        if not prompt or len(prompt.strip()) == 0:
-            return {"error": "Prompt cannot be empty"}
-        
-        # Clean and validate prompt
-        prompt = prompt.strip()
-        if len(prompt) > 1000:
-            return {"error": "Prompt is too long (max 1000 characters)"}
-        
-        logger.info(f"Generating image with DALL-E 3 for prompt: {prompt[:100]}...")
-        
-        # the newest OpenAI model is "dall-e-3" for image generation
-        # do not change this unless explicitly requested by the user
-        response = openai_client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            n=1,
-            size="1024x1024",
-            quality="standard",
-            response_format="url"
-        )
-        
-        if response.data and len(response.data) > 0:
-            image_url = response.data[0].url
-            logger.info(f"Image generated successfully: {image_url}")
-            return {"url": image_url}
-        else:
-            logger.error("No image data returned from OpenAI")
-            return {"error": "No image was generated"}
-            
-    except Exception as e:
-        error_msg = str(e)
-        logger.error(f"Error generating image: {error_msg}")
-        
-        # Handle specific OpenAI errors
-        if "content_policy_violation" in error_msg.lower():
-            return {"error": "Content violates OpenAI's usage policies. Please try a different prompt."}
-        elif "insufficient_quota" in error_msg.lower() or "quota" in error_msg.lower():
-            return {"error": "API quota exceeded. Please try again later."}
-        elif "invalid_api_key" in error_msg.lower():
-            return {"error": "Invalid API key configuration."}
-        elif "rate_limit" in error_msg.lower():
-            return {"error": "Rate limit exceeded. Please wait a moment and try again."}
-        elif "billing_hard_limit_reached" in error_msg.lower():
-            return {"error": "Billing limit reached. Please check your OpenAI account."}
-        else:
-            return {"error": f"Failed to generate image: {error_msg}"}
+# OpenAI function removed - now using Stable Diffusion
