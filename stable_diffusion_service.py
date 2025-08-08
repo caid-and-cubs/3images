@@ -43,7 +43,8 @@ class StableDiffusionService:
                     self.api_url,
                     headers=self.headers,
                     json=payload,
-                    timeout=60
+                    timeout=60,
+                    verify=True  # Ensure SSL verification
                 )
                 
                 if response.status_code == 200:
