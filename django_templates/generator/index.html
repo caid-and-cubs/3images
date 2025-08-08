@@ -1,0 +1,274 @@
+{% extends "generator/base.html" %}
+{% load static %}
+
+{% block title %}Generate Image - AI Image Generator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-palette text-primary me-3"></i>
+                AI Image Generator
+            </h1>
+            <p class="lead text-muted">
+                Transform your ideas into stunning visuals with the power of artificial intelligence.
+                Simply describe what you want to see, and watch it come to life!
+            </p>
+        </div>
+    </div>
+
+    <!-- Generation Form -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <form method="POST" action="{% url 'generate_image' %}" id="generateForm">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="prompt" class="form-label h5">
+                                <i class="fas fa-pencil-alt me-2"></i>Describe your image
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="prompt" 
+                                name="prompt" 
+                                rows="4" 
+                                placeholder="A majestic mountain landscape at sunset with purple clouds and snow-capped peaks..."
+                                maxlength="1000"
+                                required>{{ prompt|default:'' }}</textarea>
+                            <div class="form-text">
+                                <span id="charCount">0</span>/1000 characters
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
+                                <i class="fas fa-magic me-2"></i>
+                                <span class="btn-text">Generate Image</span>
+                                <span class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="row justify-content-center mb-5 d-none" id="loadingSection">
+        <div class="col-lg-8 text-center">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4>Creating your masterpiece...</h4>
+                    <p class="text-muted">This usually takes 10-20 seconds</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generated Image Display -->
+    {% if generated_image %}
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-image me-2"></i>Generated Image
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ generated_image }}" 
+                         alt="{{ prompt }}" 
+                         class="img-fluid rounded shadow mb-3"
+                         style="max-height: 500px;">
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-quote-left me-1"></i>
+                            {{ prompt }}
+                            <i class="fas fa-quote-right ms-1"></i>
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        {% if image_id %}
+                        <a href="{% url 'download_image' image_id %}" 
+                           class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'gallery' %}" class="btn btn-secondary">
+                            <i class="fas fa-images me-2"></i>View Gallery
+                        </a>
+                        <button onclick="shareImage()" class="btn btn-outline-primary">
+                            <i class="fas fa-share me-2"></i>Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Features Section -->
+    {% if not generated_image %}
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-bolt text-warning display-4 mb-3"></i>
+                    <h5>Lightning Fast</h5>
+                    <p class="text-muted">Generate high-quality images in seconds with state-of-the-art AI technology.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-palette text-info display-4 mb-3"></i>
+                    <h5>Unlimited Creativity</h5>
+                    <p class="text-muted">From photorealistic portraits to abstract art - your imagination is the only limit.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-download text-success display-4 mb-3"></i>
+                    <h5>Easy Download</h5>
+                    <p class="text-muted">Download your creations in high resolution for personal or commercial use.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Examples Section -->
+    {% if not generated_image %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-lightbulb me-2"></i>Need inspiration? Try these prompts:
+            </h3>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card prompt-example" onclick="fillPrompt(this)">
+                        <div class="card-body">
+                            <small class="text-muted">Landscape</small>
+                            <p class="mb-0">"A serene lake reflecting snow-capped mountains at golden hour"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card prompt-example" onclick="fillPrompt(this)">
+                        <div class="card-body">
+                            <small class="text-muted">Fantasy</small>
+                            <p class="mb-0">"A magical forest with glowing mushrooms and floating crystals"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card prompt-example" onclick="fillPrompt(this)">
+                        <div class="card-body">
+                            <small class="text-muted">Abstract</small>
+                            <p class="mb-0">"Vibrant swirls of color dancing in cosmic space"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card prompt-example" onclick="fillPrompt(this)">
+                        <div class="card-body">
+                            <small class="text-muted">Animal</small>
+                            <p class="mb-0">"A wise owl perched on an ancient tree branch under moonlight"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card prompt-example" onclick="fillPrompt(this)">
+                        <div class="card-body">
+                            <small class="text-muted">Architecture</small>
+                            <p class="mb-0">"A futuristic city skyline with floating buildings and neon lights"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card prompt-example" onclick="fillPrompt(this)">
+                        <div class="card-body">
+                            <small class="text-muted">Portrait</small>
+                            <p class="mb-0">"An elegant woman in Victorian dress holding a vintage camera"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Character counter
+document.getElementById('prompt').addEventListener('input', function() {
+    const charCount = this.value.length;
+    document.getElementById('charCount').textContent = charCount;
+    
+    if (charCount > 800) {
+        document.getElementById('charCount').className = 'text-warning';
+    } else if (charCount > 950) {
+        document.getElementById('charCount').className = 'text-danger';
+    } else {
+        document.getElementById('charCount').className = '';
+    }
+});
+
+// Form submission with loading state
+document.getElementById('generateForm').addEventListener('submit', function() {
+    const btn = document.getElementById('generateBtn');
+    const btnText = btn.querySelector('.btn-text');
+    const spinner = btn.querySelector('.spinner-border');
+    
+    btn.disabled = true;
+    btnText.textContent = 'Generating...';
+    spinner.classList.remove('d-none');
+    
+    document.getElementById('loadingSection').classList.remove('d-none');
+});
+
+// Fill prompt from examples
+function fillPrompt(element) {
+    const prompt = element.querySelector('p').textContent.replace(/"/g, '');
+    document.getElementById('prompt').value = prompt;
+    document.getElementById('prompt').dispatchEvent(new Event('input'));
+    
+    // Scroll to form
+    document.getElementById('generateForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Share functionality
+function shareImage() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this AI-generated image!',
+            text: 'I created this amazing image using AI: {{ prompt|escapejs }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy URL to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    }
+}
+
+// Initialize character counter
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('prompt').dispatchEvent(new Event('input'));
+});
+</script>
+{% endblock %}

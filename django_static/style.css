@@ -1,0 +1,239 @@
+/* Custom styles for AI Image Generator */
+
+/* Gallery specific styles */
+.gallery-image {
+    height: 250px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.gallery-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.gallery-card .position-relative {
+    overflow: hidden;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-card:hover .image-overlay {
+    opacity: 1;
+}
+
+.overlay-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Prompt examples */
+.prompt-example {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--bs-border-color);
+}
+
+.prompt-example:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--bs-primary);
+}
+
+.prompt-example p {
+    font-style: italic;
+    color: var(--bs-secondary);
+}
+
+/* Loading animations */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Form enhancements */
+#prompt {
+    resize: vertical;
+    min-height: 120px;
+}
+
+#prompt:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Character counter styling */
+.form-text {
+    font-size: 0.875rem;
+}
+
+/* Button enhancements */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Image display styling */
+.img-fluid.rounded.shadow {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Modal enhancements */
+.modal-content {
+    border: none;
+    border-radius: 1rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--bs-border-color);
+}
+
+/* Navigation styling */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--bs-primary) !important;
+}
+
+/* Footer styling */
+footer {
+    margin-top: auto;
+}
+
+/* Alert enhancements */
+.alert {
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 500;
+}
+
+/* Card enhancements */
+.card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    background: var(--bs-light);
+    border-bottom: 1px solid var(--bs-border-color);
+    border-radius: 1rem 1rem 0 0 !important;
+    font-weight: 600;
+}
+
+/* Hero section */
+.display-4 {
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Feature cards */
+.display-4.mb-3 {
+    background: none;
+    -webkit-text-fill-color: unset;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .gallery-image {
+        height: 200px;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-primary);
+}
+
+/* Accessibility improvements */
+.btn:focus,
+.form-control:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .btn,
+    footer,
+    .modal {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000;
+        box-shadow: none;
+    }
+}
