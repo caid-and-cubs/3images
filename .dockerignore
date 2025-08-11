@@ -28,7 +28,6 @@ db.sqlite3
 media/
 
 # Environment variables
-.env
 .env.local
 .env.*.local
 
