@@ -27,12 +27,12 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-0pjk!o#p1mvyna
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for Replit deployment
+ALLOWED_HOSTS = os.environ.get("REPLIT_DOMAINS", "localhost,127.0.0.1").split(',')
 
 # CSRF settings for Replit
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.replit.dev',
-    'https://*.replit.app',
+    "https://" + domain for domain in os.environ.get("REPLIT_DOMAINS", "localhost").split(',')
+] + [
     'http://localhost:5000',
     'http://127.0.0.1:5000',
 ]
