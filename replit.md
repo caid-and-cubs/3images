@@ -1,6 +1,6 @@
 # Overview
 
-This is a Django-based AI image generator application that creates images from text prompts using Stable Diffusion via Hugging Face's free inference API. The application provides a user-friendly web interface for generating, viewing, downloading, and managing AI-generated images. It evolved from an initial Flask implementation with OpenAI DALL-E to the current Django implementation with Stable Diffusion to reduce costs and leverage free API usage.
+This is a Django-based web application that generates images from text prompts using AI. The application utilizes Stable Diffusion through Hugging Face's free Inference API to create images based on user descriptions. Users can generate images, view them in a gallery, download them, and manage their collection through a clean, responsive web interface.
 
 # User Preferences
 
@@ -8,72 +8,59 @@ Preferred communication style: Simple, everyday language.
 
 # System Architecture
 
-## Web Framework
-The application uses Django 5.2.5 as the primary web framework, providing a robust MVC architecture with built-in admin interface, ORM, and security features. Django was chosen over Flask for better scalability, built-in features, and user preference.
-
-## Database Design
-Uses Django ORM with a simple GeneratedImage model that stores:
-- Text prompts used for generation
-- Image URLs (data URLs for base64 encoded images)
-- Creation timestamps
-- Configured for SQLite in development and PostgreSQL in production
-
-## Frontend Architecture
-- Bootstrap 5 with Replit's dark theme for responsive UI
-- Vanilla JavaScript for client-side interactions
-- Font Awesome icons for visual elements
-- Template-based rendering using Django's template system
-- Character counting and form validation on the client side
+## Backend Framework
+- **Django 5.2.5**: Main web framework providing MVC architecture, ORM, admin interface, and URL routing
+- **Python**: Core programming language with modern async/await patterns
+- **SQLite**: Default database for development (can be upgraded to PostgreSQL for production)
 
 ## AI Image Generation Service
-- Stable Diffusion XL via Hugging Face Inference API
-- Free tier providing 30,000 characters/month (~1000 requests)
-- Images generated at 1024x1024 resolution
-- Built-in retry mechanism and error handling
-- Negative prompts to improve image quality
+- **Stable Diffusion XL**: Primary AI model accessed via Hugging Face Inference API
+- **Service Layer**: Custom `StableDiffusionService` class that handles API communication, prompt enhancement, and image processing
+- **Base64 Data URLs**: Images are stored as data URLs in the database for simplicity and self-containment
 
-## Static File Management
-- Separate static and staticfiles directories
-- Django's collectstatic for production deployment
-- CSS and JavaScript assets organized by functionality
+## Data Models
+- **GeneratedImage Model**: Stores image metadata including prompt text, image data URL, and creation timestamp
+- **Django ORM**: Handles database operations with built-in migrations and admin interface integration
 
-## URL Routing
-RESTful URL patterns:
-- `/` - Main generation interface
-- `/generate/` - POST endpoint for image generation
-- `/gallery/` - Image gallery view
-- `/download/<id>/` - Image download endpoint
-- `/delete/<id>/` - Image deletion endpoint
+## Frontend Architecture
+- **Server-Side Rendering**: Django templates with Jinja2-style templating
+- **Bootstrap 5**: UI framework with dark theme from Replit's CDN
+- **Responsive Design**: Mobile-first approach with responsive grid system
+- **Progressive Enhancement**: JavaScript adds interactive features like character counting and loading states
 
-## Security Features
-- CSRF protection for all forms
-- Environment variable configuration for sensitive data
-- Trusted origins configuration for deployment platforms
-- Input validation and sanitization
+## Static Asset Management
+- **Django's Static Files**: Handles CSS, JavaScript, and other static assets
+- **CDN Integration**: Bootstrap and Font Awesome loaded from CDNs for better performance
+- **Custom Styling**: Application-specific styles for image galleries and loading animations
+
+## Configuration Management
+- **Environment Variables**: Sensitive data like API keys managed through environment variables
+- **Django Settings**: Centralized configuration with separate settings for development and production
+- **CSRF Protection**: Built-in security features with trusted origins for deployment platforms
 
 # External Dependencies
 
-## Core Framework
-- Django 5.2.5 - Web framework
-- python-decouple - Environment variable management
+## AI Services
+- **Hugging Face Inference API**: Free tier providing 30,000 characters/month for Stable Diffusion image generation
+- **Stable Diffusion XL Base 1.0**: Specific model endpoint for high-quality image generation
 
-## AI Service Integration
-- Hugging Face Inference API - Stable Diffusion XL model access
-- Free tier: 30,000 characters/month
-- Authentication via API token
+## Frontend Libraries
+- **Bootstrap 5**: CSS framework loaded from Replit's CDN with dark theme
+- **Font Awesome 6.4.0**: Icon library for UI elements and visual indicators
+- **jQuery**: JavaScript library included with Django admin for enhanced interactions
 
-## Frontend Dependencies
-- Bootstrap 5 - UI framework (CDN)
-- Font Awesome 6.4.0 - Icon library (CDN)
-- Replit Bootstrap theme - Dark theme styling (CDN)
-
-## Deployment Infrastructure
-- Gunicorn - WSGI server for production
-- Docker support - Containerization ready
-- Replit platform - Development and hosting environment
+## Python Packages
+- **Django**: Web framework with built-in ORM, admin, and security features
+- **python-decouple**: Environment variable management for secure configuration
+- **Pillow**: Image processing library for handling generated images
+- **requests**: HTTP client library for API communication with Hugging Face
 
 ## Development Tools
-- Django admin interface - Content management
-- Django's built-in development server
-- Static file collection and management
-- Database migrations system
+- **Django Admin**: Built-in administrative interface for managing generated images
+- **Django's Development Server**: Built-in server for local development and testing
+- **Static File Handling**: Django's collectstatic for production deployment
+
+## Deployment Considerations
+- **WSGI Compatibility**: Configured for deployment on platforms like Replit, Heroku, or traditional servers
+- **CORS Settings**: Configured for cross-origin requests in development environments
+- **Database Flexibility**: Designed to work with SQLite for development and PostgreSQL for production scaling

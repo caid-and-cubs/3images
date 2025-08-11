@@ -9,7 +9,7 @@ import requests
 import tempfile
 import os
 import logging
-from stable_diffusion_service import stable_diffusion_service
+from stable_diffusion_service import get_stable_diffusion_service
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,12 @@ def generate_image(request):
         logger.info(f"Generating image for prompt: {prompt}")
         
         try:
-            image_data_url = stable_diffusion_service.generate_image(prompt)
+            service = get_stable_diffusion_service()
+            if not service:
+                messages.error(request, 'Image generation service is not available. Please check your API key.')
+                return redirect('index')
+            
+            image_data_url = service.generate_image(prompt)
             
             # Save to database
             new_image = GeneratedImage.objects.create(
