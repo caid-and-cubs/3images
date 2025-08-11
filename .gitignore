@@ -8,9 +8,11 @@ db.sqlite3
 env/
 venv/
 
-# Static files
+# Static files collected by Django
 /staticfiles/
-/static/admin/
+
+# Media files
+/media/
 
 # IDE
 .vscode/
@@ -25,12 +27,14 @@ Thumbs.db
 # Replit specific
 .replit
 replit.nix
-
-# Instance folder
-instance/
+replit.md
 
 # Logs
 *.log
 
-# Migration files (optional - you may want to include these)
-# */migrations/
+# Docker
+.docker/
+
+# Local development
+.coverage
+.pytest_cache

@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements and install Python dependencies
 COPY pyproject.toml uv.lock ./
 RUN pip install --no-cache-dir uv && \
-    uv sync --frozen
+    uv sync --frozen --no-dev
 
 # Copy project files
 COPY . .

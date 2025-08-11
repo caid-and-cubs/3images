@@ -1,63 +1,79 @@
-# AI Image Generator
+# Overview
 
-## Overview
+This is a Django-based AI image generator application that creates images from text prompts using Stable Diffusion via Hugging Face's free inference API. The application provides a user-friendly web interface for generating, viewing, downloading, and managing AI-generated images. It evolved from an initial Flask implementation with OpenAI DALL-E to the current Django implementation with Stable Diffusion to reduce costs and leverage free API usage.
 
-This is a Django-based web application that generates images from text prompts using Stable Diffusion via Hugging Face's free API. Users can input text descriptions and receive AI-generated images, which are stored in a database and displayed in a gallery. The application features a modern dark-themed interface with Bootstrap styling and provides functionality for viewing, downloading, and managing generated images.
-
-**Recent Changes:** 
-- Successfully migrated from Flask to Django on August 8, 2025
-- Switched from OpenAI's DALL-E API to free Stable Diffusion via Hugging Face API
-- Updated image handling to work with base64 data URLs instead of external URLs
-- Maintained all original functionality while eliminating API costs
-
-## User Preferences
+# User Preferences
 
 Preferred communication style: Simple, everyday language.
-Preferred framework: Django (migrated from Flask)
 
-## System Architecture
+# System Architecture
 
-### Frontend Architecture
-- **Template Engine**: Jinja2 templating with Flask for server-side rendering
-- **UI Framework**: Bootstrap 5 with dark theme from Replit's CDN for consistent styling
-- **Client-side Logic**: Vanilla JavaScript for form handling, character counting, and gallery interactions
-- **Responsive Design**: Mobile-first approach using Bootstrap's grid system
+## Web Framework
+The application uses Django 5.2.5 as the primary web framework, providing a robust MVC architecture with built-in admin interface, ORM, and security features. Django was chosen over Flask for better scalability, built-in features, and user preference.
 
-### Backend Architecture
-- **Web Framework**: Flask with modular structure separating concerns
-- **Database ORM**: SQLAlchemy with Flask-SQLAlchemy extension for database operations
-- **Model Layer**: Single `GeneratedImage` model storing prompts, image URLs, and timestamps
-- **Service Layer**: Dedicated `openai_service.py` module for DALL-E 3 integration
-- **Configuration**: Environment-based configuration for database URLs and API keys
+## Database Design
+Uses Django ORM with a simple GeneratedImage model that stores:
+- Text prompts used for generation
+- Image URLs (data URLs for base64 encoded images)
+- Creation timestamps
+- Configured for SQLite in development and PostgreSQL in production
 
-### Data Storage
-- **Primary Database**: Configurable between SQLite (development) and PostgreSQL (production) via `DATABASE_URL` environment variable
-- **Schema Design**: Simple single-table design with auto-incrementing IDs, text prompts, image URLs, and creation timestamps
-- **Connection Management**: Pool recycling and pre-ping enabled for production reliability
+## Frontend Architecture
+- Bootstrap 5 with Replit's dark theme for responsive UI
+- Vanilla JavaScript for client-side interactions
+- Font Awesome icons for visual elements
+- Template-based rendering using Django's template system
+- Character counting and form validation on the client side
 
-### Authentication and Authorization
-- **Session Management**: Flask's built-in session handling with configurable secret key
-- **Security**: No user authentication implemented - application is open access
-- **CSRF Protection**: Not currently implemented
+## AI Image Generation Service
+- Stable Diffusion XL via Hugging Face Inference API
+- Free tier providing 30,000 characters/month (~1000 requests)
+- Images generated at 1024x1024 resolution
+- Built-in retry mechanism and error handling
+- Negative prompts to improve image quality
 
-## External Dependencies
+## Static File Management
+- Separate static and staticfiles directories
+- Django's collectstatic for production deployment
+- CSS and JavaScript assets organized by functionality
 
-### APIs and Services
-- **OpenAI DALL-E 3**: Primary image generation service requiring `OPENAI_API_KEY` environment variable
-- **Image Hosting**: Generated images are hosted by OpenAI's CDN, URLs stored in database
+## URL Routing
+RESTful URL patterns:
+- `/` - Main generation interface
+- `/generate/` - POST endpoint for image generation
+- `/gallery/` - Image gallery view
+- `/download/<id>/` - Image download endpoint
+- `/delete/<id>/` - Image deletion endpoint
 
-### Third-party Libraries
-- **Flask Ecosystem**: Core framework with SQLAlchemy, Jinja2 templating
-- **Bootstrap 5**: UI framework loaded from Replit's CDN with dark theme
-- **Font Awesome 6.4.0**: Icon library loaded from CDN for UI elements
-- **Werkzeug ProxyFix**: Middleware for handling proxy headers in deployment
+## Security Features
+- CSRF protection for all forms
+- Environment variable configuration for sensitive data
+- Trusted origins configuration for deployment platforms
+- Input validation and sanitization
 
-### Infrastructure Requirements
-- **Database**: SQLite for development, PostgreSQL recommended for production
-- **Environment Variables**: `OPENAI_API_KEY` (required), `DATABASE_URL` (optional), `SESSION_SECRET` (optional)
-- **Python Dependencies**: Flask, SQLAlchemy, OpenAI client library, Requests for HTTP operations
+# External Dependencies
 
-### Deployment Considerations
-- **WSGI Application**: Configured with ProxyFix for reverse proxy deployment
-- **Static Assets**: Served through Flask's static file handling
-- **Database Migrations**: Auto-creation on startup, no formal migration system implemented
+## Core Framework
+- Django 5.2.5 - Web framework
+- python-decouple - Environment variable management
+
+## AI Service Integration
+- Hugging Face Inference API - Stable Diffusion XL model access
+- Free tier: 30,000 characters/month
+- Authentication via API token
+
+## Frontend Dependencies
+- Bootstrap 5 - UI framework (CDN)
+- Font Awesome 6.4.0 - Icon library (CDN)
+- Replit Bootstrap theme - Dark theme styling (CDN)
+
+## Deployment Infrastructure
+- Gunicorn - WSGI server for production
+- Docker support - Containerization ready
+- Replit platform - Development and hosting environment
+
+## Development Tools
+- Django admin interface - Content management
+- Django's built-in development server
+- Static file collection and management
+- Database migrations system

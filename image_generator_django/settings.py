@@ -136,7 +136,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'django_static',
+    BASE_DIR / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -149,5 +149,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# OpenAI Configuration
-OPENAI_API_KEY = config('OPENAI_API_KEY', default=None)
+# Hugging Face Configuration
+HUGGINGFACE_API_KEY = config('HUGGINGFACE_API_KEY', default=None)
