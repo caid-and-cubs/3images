@@ -1,41 +1,49 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# 1. Phase de construction : installation des dépendances
+FROM python:3.11-slim-bookworm AS builder
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=image_generator_django.settings
+# Copier l’exécutable `uv` depuis l’image officielle
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Activer bytecode compilation et copie (pas de liens symboliques)
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
-# Copy requirements and install Python dependencies
+# Copier les fichiers de dépendances pour la mise en cache Docker
 COPY pyproject.toml uv.lock ./
-RUN pip install --no-cache-dir uv && \
-    uv sync --frozen --no-dev
 
-# Copy project files
+# Installer uniquement les dépendances (sans installer le projet)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
+
+# Copier le reste du projet et installer les dépendances + Django
 COPY . .
 
-# Create staticfiles directory
-RUN mkdir -p /app/staticfiles
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Exécuter collectstatic dans l’environnement `uv`
+RUN uv run python manage.py collectstatic --noinput
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser && \
-    chown -R appuser:appuser /app
+# 2. Phase de production : image finale légère
+FROM python:3.11-slim-bookworm AS production
+
+WORKDIR /app
+
+# Copier le contenu complet du builder
+COPY --from=builder /app /app
+
+# Ajouter l’environnement virtuel `uv` au PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Créer un utilisateur non-root pour plus de sécurité
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
 EXPOSE 8000
 
-# Run migrations and start the application
-CMD ["sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 --workers 3 main:app"]
+# Migrations puis lancement de l’application via Gunicorn
+CMD ["sh", "-c", "uv run python manage.py migrate && uv run gunicorn --bind 0.0.0.0:8000 main:app"]
