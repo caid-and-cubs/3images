@@ -27,7 +27,7 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-0pjk!o#p1mvyna
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = os.environ.get("REPLIT_DOMAINS", "localhost,127.0.0.1").split(',')
+ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
 # CSRF settings for Replit
 CSRF_TRUSTED_ORIGINS = [
@@ -35,6 +35,8 @@ CSRF_TRUSTED_ORIGINS = [
 ] + [
     'http://localhost:5000',
     'http://127.0.0.1:5000',
+    'https://127.0.0.1:5000',
+    'https://localhost:5000',
 ]
 
 
