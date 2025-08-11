@@ -28,8 +28,8 @@ db.sqlite3
 media/
 
 # Environment variables
-.env.local
-.env.*.local
+#.env.local
+#.env.*.local
 
 # IDE
 .vscode/
